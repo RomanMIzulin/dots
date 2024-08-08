@@ -1,28 +1,56 @@
-module Main exposing (main)
+module Main exposing (Model, main)
 
-import Canvas exposing (..)
-import Canvas.Settings exposing (..)
 import Color -- elm install avh4/elm-color
-import Html exposing (Html)
+import Html exposing (Html,div)
 import Html.Attributes exposing (style)
-import Canvas.Settings.Text exposing (font)
+import Browser
+import Html exposing (button)
+import Html.Events exposing (onClick)
+import Html exposing (text)
 
-view : Html msg
-view =
-    let
-        width = 500
-        height = 500
-    in
-        Canvas.toHtml (width, height)
-            [ style "border" "1px solid black" ]
-            [text [font { size = 48, family = "sans-serif" }] (50,50) "hello",
-             shapes [ fill Color.white ] [ rect (0, 0) width height ],
-             renderSquare,
-            shapes [ fill Color.white ][path (0,0) [Canvas.lineTo(100,150)] ]
-            ]
+type  Dot = Empty|Red|Blue
 
-renderSquare =
-  shapes [ fill (Color.rgba 0 0 0 1) ]
-      [ rect (0, 0) 100 100 ]
+type alias Model = 
+    {
+     grid: List (List Dot),
+     width: Int,
+     lengnth: Int
+    }
 
-main = view
+type Msg = 
+    PlaceDot 
+
+init : Model
+init = 
+    {
+        grid = List.repeat 10 (List.repeat 10 Empty),
+        width = 10,
+        lengnth = 10
+    }
+makeCircle : String -> String -> String -> Html Msg
+makeCircle size color margin =
+    div
+        [ style "width" size
+        , style "height" size
+        , style "background-color" color
+        , style "border-radius" "50%"
+        , style "margin" margin
+        ]
+        [button [onClick PlaceDot] [ text "PlaceDot"]]
+
+
+update: Msg -> Model -> Model
+update msg model =
+    case msg of
+        PlaceDot -> model
+view : Model -> Html Msg
+view state =
+    div []
+        [ makeCircle "100px" "red" "10px"
+        , makeCircle "100px" "blue" "10px"
+        , makeCircle "100px" "green" "10px"
+        ]
+
+main : Program () Model Msg
+main = 
+    Browser.sandbox { init = init, update = update, view = view }
