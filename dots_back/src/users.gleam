@@ -2,14 +2,19 @@ import gleam/string
 
 pub type User {
   LogedUser(name: String, ip: String, created_at: String, id: Int)
-  Visitor(ip: String)
+  Visitor(ip: String, id: Int)
 }
 
 pub fn greet_user(user: User) {
   case user {
-    Visitor(_) -> "Hello stranger"
+    Visitor(_, _) -> "Hello stranger"
     LogedUser(name, _, _, _) -> "Hello " <> name
   }
+}
+
+//get from user regisrty like running process or ets?
+pub fn get_user(user_id: Int) -> User {
+  todo
 }
 
 pub fn validate_reg_info(
