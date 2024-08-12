@@ -4,7 +4,6 @@ import gleam/io
 import gleam/string_builder
 import wisp.{type Request, type Response}
 
-import chip
 import games_manager
 
 /// The HTTP request handler- your application!
