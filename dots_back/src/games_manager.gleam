@@ -1,19 +1,17 @@
 import gleam/dict.{type Dict}
+import gleam/erlang/atom
 import gleam/erlang/process
 import gleam/float
 import gleam/int
 import gleam/io
 import gleam/otp/actor
+
 import users
 
-import game.{type Game}
+import mist
+import wisp
 
-pub fn main() {
-  io.println("Hello from dots_back!")
-  let games_visor = actor.start(init_games_supervisor(), handle_msg)
-  io.debug(games_visor)
-  loop()
-}
+import game.{type Game}
 
 pub fn loop() {
   process.receive(process.new_subject(), 1000)
@@ -27,6 +25,7 @@ pub type GamePid =
 
 pub type GameSupervisorMsg {
   CreateGame(requested_by_user_id: Int)
+  ListAllGames(reply_with: process.Subject(Result(GamesAll, String)))
 }
 
 //need game supervisor
@@ -50,6 +49,10 @@ pub fn handle_msg(
         state.games
         |> dict.insert(new_game.id, new_game)
       actor.continue(GamesAll(games: new_state))
+    }
+    ListAllGames(client) -> {
+      process.send(client, Ok(state))
+      actor.continue(state)
     }
   }
 }

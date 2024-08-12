@@ -1,6 +1,7 @@
 import gleam/string
 
 // is user identified by socket?
+// it is better to have funcs with User as the first arg to be able to use pipe operator
 pub type User {
   LogedUser(name: String, ip: String, created_at: String, id: Int)
   Visitor(ip: String, id: Int)
