@@ -7,20 +7,18 @@ import gleam/string
 // is user identified by socket?
 // it is better to have funcs with User as the first arg to be able to use pipe operator
 pub type User {
-  LogedUser(name: String, ip: String, created_at: String, id: Int)
-  Visitor(ip: String, id: Int)
+  User(name: String, ip: String, created_at: String, id: Int)
 }
 
 pub fn greet_user(user: User) {
   case user {
-    Visitor(_, _) -> "Hello stranger"
-    LogedUser(name, _, _, _) -> "Hello " <> name
+    User(name, _, _, _) -> "Hello " <> name
   }
 }
 
 //get from user regisrty like running process or ets?
 pub fn get_user(user_id: Int) -> User {
-  LogedUser("kek", "kek", "kek", user_id)
+  User("kek", "kek", "kek", user_id)
 }
 
 pub fn validate_reg_info(
@@ -63,7 +61,7 @@ pub fn create_users_manager() -> UsersManager {
 pub type UsersManagerMessage {
   // Reg user
   AddUser(name: String, ip: String)
-  GetUser(client: Subject(Result(User,Nil)), user_id: Int)
+  GetUser(client: Subject(Result(User, Nil)), user_id: Int)
   RemoveUser(Int)
   SendMessage(Int, Int, String)
 }
@@ -82,12 +80,12 @@ pub fn handle_users_manager_message(
       let new_state =
         UsersManager(
           users: state.users
-          |> dict.insert(generated_id, LogedUser(name, ip, "kek", generated_id)),
+          |> dict.insert(generated_id, User(name, ip, "kek", generated_id)),
         )
       actor.continue(new_state)
     }
     GetUser(client, user_id) -> {
-      process.send(client,dict.get(state.users,user_id))
+      process.send(client, dict.get(state.users, user_id))
       actor.continue(state)
     }
     _ -> actor.continue(state)

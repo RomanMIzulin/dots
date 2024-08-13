@@ -1,6 +1,7 @@
 import gleam/erlang/process
 import gleam/io
 import gleam/otp/actor
+import users
 
 import router
 
@@ -14,10 +15,11 @@ pub fn main() {
 
   let games_visor =
     actor.start(games_manager.init_games_supervisor(), games_manager.handle_msg)
+  let assert Ok(users_manager) = users.start_users_manager()
   case games_visor {
     Ok(g_visor) -> {
       let handle_req = fn(req: Request) -> Response {
-        router.handle_request(req, g_visor)
+        router.handle_request(req, g_visor, users_manager)
       }
       let assert Ok(_) =
         wisp.mist_handler(handle_req, "secret")
