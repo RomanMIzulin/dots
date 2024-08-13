@@ -1,3 +1,7 @@
+import gleam/dict.{type Dict}
+import gleam/erlang/process.{type Subject}
+import gleam/int
+import gleam/otp/actor
 import gleam/string
 
 // is user identified by socket?
@@ -44,4 +48,48 @@ pub type Message {
 pub type Chat {
   UserChat(user1: User, user2: User, msgs: List(Message))
   SystemChat(user1: User, msgs: List(Message))
+}
+
+pub opaque type UsersManager {
+  UsersManager(users: Dict(Int, User))
+}
+
+pub fn create_users_manager() -> UsersManager {
+  // is it just state actully?
+  // here need to get users from disc or Mnesia, but for now just return empty state
+  UsersManager(users: dict.new())
+}
+
+pub type UsersManagerMessage {
+  // Reg user
+  AddUser(name: String, ip: String)
+  GetUser(client: Subject(Result(User,Nil)), user_id: Int)
+  RemoveUser(Int)
+  SendMessage(Int, Int, String)
+}
+
+pub fn start_users_manager() {
+  actor.start(create_users_manager(), handle_users_manager_message)
+}
+
+pub fn handle_users_manager_message(
+  message: UsersManagerMessage,
+  state: UsersManager,
+) -> actor.Next(UsersManagerMessage, UsersManager) {
+  case message {
+    AddUser(name, ip) -> {
+      let generated_id = int.random(65_536)
+      let new_state =
+        UsersManager(
+          users: state.users
+          |> dict.insert(generated_id, LogedUser(name, ip, "kek", generated_id)),
+        )
+      actor.continue(new_state)
+    }
+    GetUser(client, user_id) -> {
+      process.send(client,dict.get(state.users,user_id))
+      actor.continue(state)
+    }
+    _ -> actor.continue(state)
+  }
 }

@@ -1,15 +1,9 @@
 import gleam/dict.{type Dict}
-import gleam/erlang/atom
 import gleam/erlang/process
-import gleam/float
 import gleam/int
-import gleam/io
 import gleam/otp/actor
 
 import users
-
-import mist
-import wisp
 
 import game.{type Game}
 
