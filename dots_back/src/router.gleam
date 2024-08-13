@@ -32,6 +32,22 @@ pub fn handle_request(
   // how to send message to games visor process that manages all games?
 
   let res = case wisp.path_segments(req) {
+    ["users", "reg"] -> {
+      use <- wisp.require_method(req, Post)
+      use json <- wisp.require_json(req)
+      case decode_reg_data(json) {
+        Ok(res) -> {
+          // here need to call UsersManager.AddUser
+          let object =
+            json.object([
+              #("name", json.string(res.name)),
+              #("created", json.bool(True)),
+            ])
+          wisp.json_response(json.to_string_builder(object), 201)
+        }
+        Error(_) -> wisp.unprocessable_entity()
+      }
+    }
     ["users", id] -> {
       case int.parse(id) {
         Ok(user_id) -> {
@@ -65,22 +81,6 @@ pub fn handle_request(
             ),
             404,
           )
-      }
-    }
-    ["users/reg"] -> {
-      use <- wisp.require_method(req, Post)
-      use json <- wisp.require_json(req)
-      case decode_reg_data(json) {
-        Ok(res) -> {
-          // here need to call UsersManager.AddUser
-          let object =
-            json.object([
-              #("name", json.string(res.name)),
-              #("created", json.bool(True)),
-            ])
-          wisp.json_response(json.to_string_builder(object), 201)
-        }
-        Error(_) -> wisp.unprocessable_entity()
       }
     }
     ["games"] -> {
