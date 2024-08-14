@@ -1,9 +1,8 @@
 //// Contains all logic related to a specif game between 2 users
 
 import gleam/erlang/process.{type Subject}
+import gleam/int
 import gleam/otp/actor
-
-import users
 
 pub type GameRes {
   Player1Won
@@ -28,19 +27,20 @@ pub type GameMessage {
 
 pub type Game {
   //just created waiting for a second user to join
-  NewGame(id: Int, player1: users.User)
+  NewGame(id: Int, player1: Int, game_name: String)
   // started and ongoing game with 2 players
-  OngoingGame(id: Int, player1: users.User, player2: users.User)
+  OngoingGame(id: Int, player1: Int, player2: Int, game_name: String)
   FinishedGame(
     id: Int,
-    player1: users.User,
-    player2: users.User,
+    player1: Int,
+    player2: Int,
     game_res: GameRes,
+    game_name: String,
   )
-  FailedGame(id: Int, reason: String)
+  FailedGame(id: Int, reason: String, game_name: String)
 }
 
-// Entrypoing for handling all gamesession relaged messages
+// Entrypoing for handling all game related messages. Specifically to only ONE game.
 // actor.start(NewGame, handle_message) -> actor.call(game_actor, UserJoined, <here pid of manager of all game sessions>)
 pub fn handle_message(
   msg: GameMessage,
@@ -52,13 +52,9 @@ pub fn handle_message(
     // it means there are 2 players and game can start
     UserJoined(user_id, client) -> {
       case game_state {
-        NewGame(id, player1) -> {
+        NewGame(id, player1, game_name) -> {
           let new_state =
-            OngoingGame(
-              id: id,
-              player1: player1,
-              player2: users.get_user(user_id),
-            )
+            OngoingGame(id: id, player1: player1, player2: user_id, game_name:)
           actor.continue(new_state)
         }
         _ -> {
@@ -69,4 +65,16 @@ pub fn handle_message(
     }
     _ -> actor.continue(game_state)
   }
+}
+
+// returns game process id
+// req_user_id means that there can not be game without at least a user
+pub fn start_game(
+  req_user_id: Int,
+  game_name: String,
+) -> #(Subject(GameMessage), Int) {
+  let game_id = int.random(56_123)
+  let init_state = NewGame(id: game_id, player1: req_user_id, game_name:)
+  let assert Ok(new_game) = actor.start(init_state, handle_message)
+  #(new_game, game_id)
 }

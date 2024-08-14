@@ -62,6 +62,7 @@ pub type UsersManagerMessage {
   // Reg user
   AddUser(name: String, ip: String)
   GetUser(client: Subject(Result(User, Nil)), user_id: Int)
+  ListAllUsers(client: Subject(Dict(Int, User)))
   RemoveUser(Int)
   SendMessage(Int, Int, String)
 }
@@ -86,6 +87,10 @@ pub fn handle_users_manager_message(
     }
     GetUser(client, user_id) -> {
       process.send(client, dict.get(state.users, user_id))
+      actor.continue(state)
+    }
+    ListAllUsers(client) -> {
+      process.send(client, state.users)
       actor.continue(state)
     }
     _ -> actor.continue(state)
