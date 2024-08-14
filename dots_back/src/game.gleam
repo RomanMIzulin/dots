@@ -28,17 +28,17 @@ pub type GameMessage {
 
 pub type Game {
   //just created waiting for a second user to join
-  NewGame(id: Int,game_name: String, player1: Int, )
+  NewGame(id: Int,game_name: String, player1: Int )
   // started and ongoing game with 2 players
-  OngoingGame(id: Int,game_name: String, player1: Int, player2: Int, game_name: String)
+  OngoingGame(id: Int,game_name: String, player1: Int, player2: Int)
   FinishedGame(
     id: Int,
     game_name: String,
     player1: Int,
     player2: Int,
-    game_res: GameRes,
+    game_res: GameRes
   )
-  FailedGame(id: Int,game_name: String, reason: String, )
+  FailedGame(id: Int,game_name: String, reason: String )
 }
 
 // Entrypoing for handling all game related messages. Specifically to only ONE game.
@@ -53,9 +53,9 @@ pub fn handle_message(
     // it means there are 2 players and game can start
     UserJoin(user_id, client) -> {
       case game_state {
-        NewGame(id, player1, game_name) -> {
+        NewGame(id, game_name, player1) -> {
           let new_state =
-            OngoingGame(id: id, player1: player1, player2: user_id, game_name:)
+            OngoingGame(id: id,game_name:game_name, player1: player1, player2: user_id, )
           actor.continue(new_state)
         }
         _ -> {
