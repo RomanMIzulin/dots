@@ -140,12 +140,24 @@ pub fn handle_request(
       )
     }
     ["games"] -> {
-      let subject = process.new_subject()
       let games =
-        process.send(games_manager_pr, games_manager.ListAllGames(subject))
+        process.call(
+          games_manager_pr,
+          fn(a) { games_manager.ListAllGames(a) },
+          10,
+        )
+      let obj =
+        dict.to_list(games)
+        |> json.array(fn(t) {
+          json.object([
+            #("game_id", json.int(t.0)),
+            #("game_name", json.string({ t.1 }.game_name)),
+          ])
+        })
+        |> json.to_string_builder()
+
       io.debug(games)
-      let body = string_builder.from_string("kek")
-      wisp.html_response(body, 200)
+      wisp.html_response(obj, 200)
     }
     _ -> wisp.not_found()
   }

@@ -21,23 +21,24 @@ pub type GameMessage {
 
   UserPlacedDot(user_id: Int, coordinates: Point)
 
-  UserJoined(user_id: Int, reply_with: Subject(Result(String, String)))
+  UserJoin(user_id: Int, reply_with: Subject(Result(Bool, String)))
   UserLeaved(user_id: Int)
+  GameStatus(reply_with: Subject(Game))
 }
 
 pub type Game {
   //just created waiting for a second user to join
-  NewGame(id: Int, player1: Int, game_name: String)
+  NewGame(id: Int,game_name: String, player1: Int, )
   // started and ongoing game with 2 players
-  OngoingGame(id: Int, player1: Int, player2: Int, game_name: String)
+  OngoingGame(id: Int,game_name: String, player1: Int, player2: Int, game_name: String)
   FinishedGame(
     id: Int,
+    game_name: String,
     player1: Int,
     player2: Int,
     game_res: GameRes,
-    game_name: String,
   )
-  FailedGame(id: Int, reason: String, game_name: String)
+  FailedGame(id: Int,game_name: String, reason: String, )
 }
 
 // Entrypoing for handling all game related messages. Specifically to only ONE game.
@@ -50,7 +51,7 @@ pub fn handle_message(
     Shutdown -> actor.Stop(process.Normal)
 
     // it means there are 2 players and game can start
-    UserJoined(user_id, client) -> {
+    UserJoin(user_id, client) -> {
       case game_state {
         NewGame(id, player1, game_name) -> {
           let new_state =
@@ -62,6 +63,10 @@ pub fn handle_message(
           actor.continue(game_state)
         }
       }
+    }
+    GameStatus(client) -> {
+      process.send(client, game_state)
+      actor.continue(game_state)
     }
     _ -> actor.continue(game_state)
   }

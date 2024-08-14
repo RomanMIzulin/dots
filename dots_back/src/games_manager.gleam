@@ -2,7 +2,7 @@ import gleam/dict.{type Dict}
 import gleam/erlang/process.{type Subject}
 import gleam/otp/actor
 
-import game.{type GameMessage}
+import game.{type Game, type GameMessage}
 
 pub fn loop() {
   process.receive(process.new_subject(), 1000)
@@ -20,7 +20,7 @@ pub type GameSupervisorMsg {
     requested_by_user_id: Int,
     game_name: String,
   )
-  ListAllGames(reply_with: process.Subject(Result(GamesAll, String)))
+  ListAllGames(reply_with: process.Subject(Dict(GamePid, Game)))
   // returns game_id
   JoinGame(
     reply_with: process.Subject(Result(GamePid, String)),
@@ -64,7 +64,19 @@ pub fn handle_msg(
       case game {
         Ok(g) -> {
           // add here user to game  
-          process.send(client, Ok(g))
+          let assert Ok(game_sub) = dict.get(state.games, g)
+          let res =
+            process.call(
+              game_sub,
+              fn(a) { game.UserJoin(user_id: req_user_id, reply_with: a) },
+              10,
+            )
+          case res {
+            Ok(_) -> {
+              process.send(client, Ok(g))
+            }
+            Error(reason) -> process.send(client, Error(reason))
+          }
         }
         Error(_) -> process.send(client, Error("no such game"))
       }
@@ -74,7 +86,12 @@ pub fn handle_msg(
       ))
     }
     ListAllGames(client) -> {
-      process.send(client, Ok(state))
+      // actually here need to collect status of all pids stored in games
+      let games =
+        dict.map_values(state.games, fn(_k, v) {
+          process.call(v, game.GameStatus, 10)
+        })
+      process.send(client, games)
       actor.continue(state)
     }
   }
