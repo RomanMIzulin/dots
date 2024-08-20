@@ -1,0 +1,16 @@
+shape: sequence_diagram
+init
+controller: lustre runtime
+view
+update
+
+init -> controller: model, effect
+controller -> view: model
+
+cycle:{
+view -> controller: msg
+controller -> update: msg, note that msg can be effect-like 
+update -> controller: model, effect
+controller->view: model
+}
+view -> controller: msg

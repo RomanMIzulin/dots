@@ -1,0 +1,56 @@
+direction: right
+shape: sequence_diagram
+loged_user: {
+  shape: person
+  style: {
+    fill: green
+  }
+}
+user: {
+  shape: person
+}
+user_manager
+game_manager
+game: game process
+
+starting game: {
+  user -> user_manager: register
+  user -> user_manager: login
+
+  user -> game_manager: start game with game name
+  game_manager -> game: start particular game
+  game -> game_manager: returns game_id
+  game_manager -> user: game_id and *game_name*
+
+  loged_user -> game_manager: connect to game using unique game_name or game id
+  game_manager -> game: get state
+  game_manager -> loged_user: return game state or just store game state and game manager?
+}
+
+move: {
+  loged_user -> game_manager: makes move - places dot
+  game_manager -> game: send msg to apply move
+  game -> game: checks that move is correct and possible
+  invalid move: {
+    game -> game_manager: new invalid state
+    (game -> game_manager)[0].style.stroke: red
+
+    game_manager -> loged_user: send msg that move is not possible
+  }
+  valid move: {
+    game -> game: apply move
+    game -> game_manager: new valid state
+    game_manager -> loged_user: new game state
+    game_manager -> user: new game state
+  }
+}
+
+shutdown: {
+  user -> game_manager: user makes final move
+  game_manager -> game: send msg
+  game -> game: apply move
+  game -> game_manager: msg that game is over
+  game -> game: shutdown itself with game artifact
+  game_manager -> user: msg that game is over
+  game_manager -> loged_user: msg that game is over
+}
