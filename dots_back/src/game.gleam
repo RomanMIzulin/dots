@@ -26,19 +26,23 @@ pub type GameMessage {
   GameStatus(reply_with: Subject(Game))
 }
 
-pub type Game {
+pub opaque type Game {
   //just created waiting for a second user to join
-  NewGame(id: Int,game_name: String, player1: Int )
+  NewGame(id: Int, game_name: String, player1: Int)
   // started and ongoing game with 2 players
-  OngoingGame(id: Int,game_name: String, player1: Int, player2: Int)
+  OngoingGame(id: Int, game_name: String, player1: Int, player2: Int)
   FinishedGame(
     id: Int,
     game_name: String,
     player1: Int,
     player2: Int,
-    game_res: GameRes
+    game_res: GameRes,
   )
-  FailedGame(id: Int,game_name: String, reason: String )
+  FailedGame(id: Int, game_name: String, reason: String)
+}
+
+pub fn get_game_name(game: Game) -> String {
+  game.game_name
 }
 
 // Entrypoing for handling all game related messages. Specifically to only ONE game.
@@ -55,7 +59,12 @@ pub fn handle_message(
       case game_state {
         NewGame(id, game_name, player1) -> {
           let new_state =
-            OngoingGame(id: id,game_name:game_name, player1: player1, player2: user_id, )
+            OngoingGame(
+              id: id,
+              game_name: game_name,
+              player1: player1,
+              player2: user_id,
+            )
           actor.continue(new_state)
         }
         _ -> {
@@ -71,6 +80,8 @@ pub fn handle_message(
     _ -> actor.continue(game_state)
   }
 }
+
+//just test zed. Seems work find btw
 
 // returns game process id
 // req_user_id means that there can not be game without at least a user

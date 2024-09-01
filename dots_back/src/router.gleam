@@ -12,6 +12,7 @@ import gleam/string_builder
 import gleam/json
 import wisp.{type Request, type Response}
 
+import game.{type Game}
 import games_manager
 import users.{type User}
 
@@ -148,10 +149,10 @@ pub fn handle_request(
         )
       let obj =
         dict.to_list(games)
-        |> json.array(fn(t) {
+        |> json.array(fn(t: #(Int, Game)) {
           json.object([
             #("game_id", json.int(t.0)),
-            #("game_name", json.string({ t.1 }.game_name)),
+            #("game_name", json.string(game.get_game_name({ t.1 }))),
           ])
         })
         |> json.to_string_builder()
